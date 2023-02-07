@@ -80,6 +80,7 @@ public class PlaidFlutterPlugin implements FlutterPlugin, MethodCallHandler, Eve
   private MethodChannel methodChannel;
   private EventChannel eventChannel;
   private EventSink eventSink;
+  private Result result;
 
   /// Result handler
   private final LinkResultHandler resultHandler = new LinkResultHandler(
@@ -91,6 +92,10 @@ public class PlaidFlutterPlugin implements FlutterPlugin, MethodCallHandler, Eve
         data.put(KEY_METADATA, mapFromSuccessMetadata(linkSuccess.getMetadata()));
 
         sendEvent(data);
+
+        if (result != null) {
+          result.success(null);
+        }
 
         return Unit.INSTANCE;
       },
@@ -106,6 +111,11 @@ public class PlaidFlutterPlugin implements FlutterPlugin, MethodCallHandler, Eve
         }
 
         sendEvent(data);
+
+        if (result != null) {
+          result.success(null);
+        }
+
         return Unit.INSTANCE;
       }
   );
@@ -134,6 +144,8 @@ public class PlaidFlutterPlugin implements FlutterPlugin, MethodCallHandler, Eve
 
   @Override
   public void onMethodCall(MethodCall call, @NonNull Result result) {
+    this.result = result;
+
     if(call.method.equals("open")) {
       this.open(call.arguments());
     }
