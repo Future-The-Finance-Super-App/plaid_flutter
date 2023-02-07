@@ -45,6 +45,7 @@ static NSString* const kTypeKey = @"type";
 @implementation PlaidFlutterPlugin {
     FlutterEventSink _eventSink;
     id<PLKHandler> _linkHandler;
+    FlutterResult _flutterResult;
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -61,9 +62,12 @@ static NSString* const kTypeKey = @"type";
 
 - (void)dealloc {
   _linkHandler = nil;
+  _flutterResult = nil;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+    _flutterResult = result;
+    
     if ([@"open" isEqualToString:call.method])
         [self openWithArguments: call.arguments];
     else if ([@"close" isEqualToString:call.method])
@@ -111,6 +115,10 @@ static NSString* const kTypeKey = @"type";
         [strongSelf sendEventWithArguments: @{kTypeKey: kOnSuccessType,
                                               kPublicTokenKey: success.publicToken ?: @"",
                                               kMetadataKey : [PlaidFlutterPlugin dictionaryFromSuccessMetadata:success.metadata]}];
+        
+        if (strongSelf->_flutterResult) {
+            strongSelf->_flutterResult(NULL);
+        }
     };
     
     PLKOnExitHandler exitHandler = ^(PLKLinkExit *exit) {
@@ -126,6 +134,10 @@ static NSString* const kTypeKey = @"type";
         }
         
         [strongSelf sendEventWithArguments: arguments];
+        
+        if (strongSelf->_flutterResult) {
+            strongSelf->_flutterResult(NULL);
+        }
     };
     
     PLKOnEventHandler eventHandler = ^(PLKLinkEvent *event) {
@@ -164,6 +176,8 @@ static NSString* const kTypeKey = @"type";
         };
         
         void(^dismissalHandler)(UIViewController *) = ^(UIViewController *linkViewController) {
+            __strong typeof(self) strongSelf = weakSelf;
+            
             if (didPresent) {
                 [weakSelf close];
                 didPresent = NO;
