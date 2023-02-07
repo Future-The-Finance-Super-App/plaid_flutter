@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:plaid_flutter/plaid_flutter.dart';
@@ -109,7 +110,10 @@ class _MyAppState extends State<MyApp> {
               SizedBox(height: 15),
               ElevatedButton(
                 onPressed: _configuration != null
-                    ? () => PlaidLink.open(configuration: _configuration!)
+                    ? () async {
+                        await PlaidLink.open(configuration: _configuration!);
+                        log('Plaid Link Ended');
+                      }
                     : null,
                 child: Text("Open"),
               ),
